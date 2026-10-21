@@ -1,11 +1,14 @@
+
 [project]
-name = "blank-app-template"
+name = "studynova"
 version = "0.1.0"
-description = "A simple Streamlit app template."
+description = "StudyNova AI Study Assistant"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "streamlit>=1.61.1",
+    "requests",
+    "pypdf",
 ]
 
 [tool.uv]
