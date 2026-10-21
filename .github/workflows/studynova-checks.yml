@@ -1,0 +1,35 @@
+name: StudyNova checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install locked dependencies
+        run: uv sync --locked
+
+      - name: Check Python syntax
+        run: uv run python -m compileall -q streamlit_app.py
+
+      - name: Verify required libraries
+        run: uv run python -c "import requests, streamlit; import pypdf; print('StudyNova dependencies import successfully')"
