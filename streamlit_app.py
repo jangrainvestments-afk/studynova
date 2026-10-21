@@ -64,23 +64,56 @@ def ask_ai(prompt):
         )
 
         if not response.ok:
+            # Cloudflare returns structured error codes. Use them to give
+            # students safe, useful guidance without exposing request secrets.
+            try:
+                error_payload = response.json()
+            except ValueError:
+                error_payload = {}
+
+            cloudflare_errors = error_payload.get("errors", [])
+            error_messages = " ".join(
+                str(item.get("message", ""))
+                for item in cloudflare_errors
+                if isinstance(item, dict)
+            ).lower()
+            error_codes = {
+                str(item.get("code", ""))
+                for item in cloudflare_errors
+                if isinstance(item, dict)
+            }
+
             if response.status_code in (401, 403):
                 return (
-                    "Cloudflare authentication failed. Check your API token, "
-                    "permissions, and account ID in Streamlit Secrets."
+                    "Cloudflare authentication failed. Check the API token, "
+                    "its permissions, and the account ID in Streamlit Secrets."
                 )
             if response.status_code == 404:
                 return (
                     "The AI model or endpoint was not found. "
-                    "Check whether this model is available for your account."
+                    "Check the current model ID in Cloudflare's model catalogue."
                 )
             if response.status_code == 429:
+                if "3036" in error_codes or "daily free allocation" in error_messages:
+                    return (
+                        "StudyNova has used today's free Cloudflare AI allowance. "
+                        "It resets at 00:00 UTC (5:30 AM India time). No payment "
+                        "is needed for this message—please try again after the reset."
+                    )
                 return (
-                    "The AI service is rate-limited or its available quota "
-                    "may have been reached. Please try again later."
+                    "The AI service is temporarily rate-limited or busy. "
+                    "Wait a little and try again."
+                )
+            if response.status_code in (500, 502, 503, 504):
+                return (
+                    "The AI service is temporarily unavailable. Your notes are "
+                    "still on this page; please wait a little and try again."
                 )
 
-            return f"Cloudflare returned HTTP {response.status_code}. Please check your AI settings."
+            return (
+                f"Cloudflare returned HTTP {response.status_code}. "
+                "Please check the AI settings or try again later."
+            )
 
         data = response.json()
         result = data.get("result", {})
