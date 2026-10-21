@@ -17,14 +17,22 @@ API_BASE = "https://api.cloudflare.com/client/v4/accounts"
 # ---------------- AI CONNECTION ----------------
 def ask_ai(prompt):
     try:
-        account_id = st.secrets.get("CLOUDFLARE_ACCOUNT_ID", "")
-        api_token = st.secrets.get("CLOUDFLARE_API_TOKEN", "")
+        try:
+            account_id = str(st.secrets.get("CLOUDFLARE_ACCOUNT_ID", "")).strip()
+            api_token = str(st.secrets.get("CLOUDFLARE_API_TOKEN", "")).strip()
+        except Exception:
+            return (
+                "SETUP REQUIRED: StudyNova cannot read its Cloudflare secrets. "
+                "Open your app in Streamlit Cloud, go to Settings > Secrets, "
+                "and check that CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN "
+                "are saved there. Never paste the token into chat or public GitHub."
+            )
 
         if not account_id or not api_token:
             return (
-                "SETUP REQUIRED: Cloudflare credentials are missing. "
-                "Add CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN "
-                "in your Streamlit app's Secrets settings."
+                "SETUP REQUIRED: Cloudflare credentials are missing or blank. "
+                "Open Streamlit Cloud > Settings > Secrets and check that "
+                "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are present."
             )
 
         url = f"{API_BASE}/{account_id}/ai/run/{MODEL}"
