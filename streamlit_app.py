@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide",
 )
 
-MODEL = "@cf/meta/llama-3.1-8b-instruct"
+MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"
 API_BASE = "https://api.cloudflare.com/client/v4/accounts"
 
 # ---------------- AI CONNECTION ----------------
